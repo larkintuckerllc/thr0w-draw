@@ -1,0 +1,15 @@
+{
+  "name": "thr0w-draw",
+  "version": "0.0.1",
+  "authors": [
+    "John Tucker <john@larkintuckerllc.com>"
+  ],
+  "main": [
+    "dist/thr0w-draw.css",
+    "dist/thr0w-draw.min.js"
+  ],
+  "license": "GPL",
+  "ignore": [],
+  "dependencies": {
+  }
+}
