@@ -37,6 +37,7 @@
     var mousePanning = false;
     var lastX;
     var lastY;
+    var scale = grid.getRowScale();
     var frameEl = grid.getFrame();
     var contentEl = grid.getContent();
     var offsetLeft = frameEl.offsetLeft + contentEl.offsetLeft;
@@ -88,16 +89,16 @@
     );
     function handleMouseDown(e) {
       mousePanning = true;
-      lastX = e.pageX - offsetLeft;
-      lastY = e.pageY - offsetTop;
+      lastX = (e.pageX - offsetLeft) * scale;
+      lastY = (e.pageY - offsetTop) * scale;
       context.beginPath();
     }
     function handleMouseMove(e) {
       var x;
       var y;
       if (mousePanning) {
-        x = e.pageX - offsetLeft;
-        y = e.pageY - offsetTop;
+        x = (e.pageX - offsetLeft) * scale;
+        y = (e.pageY - offsetTop) * scale;
         drawLine(lastX, lastY, x, y);
         lastX = x;
         lastY = y;
@@ -111,16 +112,16 @@
     }
     function handleTouchStart(e) {
       if (e.touches.length === 1) {
-        lastX = e.touches[0].pageX - offsetLeft;
-        lastY = e.touches[0].pageY - offsetTop;
+        lastX = (e.touches[0].pageX - offsetLeft) * scale;
+        lastY = (e.touches[0].pageY - offsetTop) * scale;
         context.beginPath();
       }
     }
     function handleTouchMove(e) {
       var x;
       var y;
-      x = e.touches[0].pageX - offsetLeft;
-      y = e.touches[0].pageY - offsetTop;
+      x = (e.touches[0].pageX - offsetLeft) * scale;
+      y = (e.touches[0].pageY - offsetTop) * scale;
       if ((x === lastX) && (y === lastY)) {
         return;
       }
