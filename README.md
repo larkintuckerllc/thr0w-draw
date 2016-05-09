@@ -1,5 +1,3 @@
-README v0.0.4 / 22 APRIL 2016
-
 # Thr0w Draw Module
 
 ## Introduction
@@ -23,6 +21,12 @@ environment:
 Download the latest version:
 
 <https://github.com/larkintuckerllc/thr0w-draw/releases>
+
+or using Bower:
+
+```
+bower install thr0w-draw
+```
 
 To install this module:
 
