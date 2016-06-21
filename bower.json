@@ -1,7 +1,7 @@
 {
   "name": "thr0w-draw",
   "description": "The Thr0w Project is about building digital signage. This package provides a top drawing layer module.",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "main": [
     "dist/thr0w-draw.css",
     "dist/thr0w-draw.min.js"
@@ -21,6 +21,6 @@
     "url": "https://github.com/larkintuckerllc/thr0w-draw.git"
   },
   "dependencies": {
-    "thr0w-client": "^2.0.5"
+    "thr0w-client": "^2.1.0"
   }
 }
