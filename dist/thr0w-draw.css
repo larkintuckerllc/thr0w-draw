@@ -20,7 +20,7 @@
   -webkit-user-select: none;
 }
 .thr0w_draw_palatte--closed {
-  transform: translateY(-292px);
+  transform: translateY(-330px);
 }
 .thr0w_draw_palatte__color_picker {
   box-sizing: border-box;
@@ -33,6 +33,25 @@
 }
 .thr0w_draw_palatte__color_picker--selected {
   border-style: solid;
+}
+.thr0w_draw_palatte__size {
+  position: relative;
+  box-sizing: border-box;
+  margin: 4px;
+  width: 32px;
+  height: 32px;
+  background-color: white;
+}
+.thr0w_draw_palatte__size__dot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  left: 50%;
+  top: 50%;
+  border-width: 0px;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  background-color: black;
 }
 .thr0w_draw_palatte__thumb {
   margin-left: 10px;

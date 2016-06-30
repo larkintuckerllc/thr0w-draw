@@ -9,6 +9,7 @@
   if (window.thr0w === undefined) {
     throw 400;
   }
+  var LINEWIDTHS = [1, 3, 5, 10];
   var service = {};
   service.load = load;
   // jscs:disable
@@ -34,6 +35,7 @@
     }
     var open = false;
     var color = null;
+    var linewidthIndex = null;
     var mousePanning = false;
     var lastX;
     var lastY;
@@ -57,9 +59,15 @@
       '<div class="thr0w_draw_palatte__color_picker" style="background: green;"></div>',
       '<div class="thr0w_draw_palatte__color_picker" style="background: blue;"></div>',
       '<div class="thr0w_draw_palatte__color_picker" style="background: purple;"></div>',
+      '<div class="thr0w_draw_palatte__size">',
+      '<div class="thr0w_draw_palatte__size__dot">',
+      '</div>',
+      '</div>',
       '<div class="thr0w_draw_palatte__thumb thr0w_draw_palatte__thumb--closed"></div>'].join('\n');
     // jscs:disable
     contentEl.appendChild(palatteEl);
+    var sizeEl = palatteEl.querySelector('.thr0w_draw_palatte__size');
+    var sizeDotEl = palatteEl.querySelector('.thr0w_draw_palatte__size__dot');
     var thumbEl = palatteEl.querySelector('.thr0w_draw_palatte__thumb');
     var pickerEls = palatteEl.querySelectorAll('.thr0w_draw_palatte__color_picker');
     var i;
@@ -76,6 +84,7 @@
     canvasEl.addEventListener('touchend', handleTouchEnd);
     canvasEl.addEventListener('touchcancel', handleTouchEnd);
     contentEl.appendChild(canvasEl);
+    sizeEl.addEventListener('click', nextSize);
     thumbEl.addEventListener('click', toggleOpen);
     for (i = 0; i < pickerEls.length; i++) {
       pickerEls[i].addEventListener('click', pickColor);
@@ -134,10 +143,18 @@
         context.closePath();
       }
     }
+    function nextSize() {
+      linewidthIndex = linewidthIndex + 1 < LINEWIDTHS.length ?
+        linewidthIndex + 1 : 0;
+      sizeDotEl.style.width = (LINEWIDTHS[linewidthIndex] * 3) + 'px';
+      sizeDotEl.style.height = (LINEWIDTHS[linewidthIndex] * 3) + 'px';
+      updateLineWidth();
+      sendUpdate();
+    }
     function toggleOpen() {
       open = !open;
-      sendUpdate();
       updateCanvasPalatte();
+      sendUpdate();
     }
     function updateCanvasPalatte() {
       if (open) {
@@ -159,13 +176,17 @@
         pickerEls[i].classList.remove('thr0w_draw_palatte__color_picker--selected');
       }
       this.classList.add('thr0w_draw_palatte__color_picker--selected'); // jshint ignore:line
-      sendUpdate();
       updateColor();
+      sendUpdate();
     }
     function updateColor() {
-      context.strokeStyle=color;
+      context.strokeStyle = color;
+    }
+    function updateLineWidth() {
+      context.lineWidth = LINEWIDTHS[linewidthIndex];
     }
     function reset() {
+      linewidthIndex = 0;
       var defaultPickerEl = palatteEl.querySelector('.thr0w_draw_palatte__color_picker--default');
       color = defaultPickerEl.style.backgroundColor;
       canvasEl.width = canvasEl.width;
@@ -173,10 +194,13 @@
         pickerEls[i].classList.remove('thr0w_draw_palatte__color_picker--selected');
       }
       defaultPickerEl.classList.add('thr0w_draw_palatte__color_picker--selected');
-      context.strokeStyle=color;
+      sizeDotEl.style.width = (LINEWIDTHS[linewidthIndex] * 3) + 'px';
+      sizeDotEl.style.height = (LINEWIDTHS[linewidthIndex] * 3) + 'px';
+      updateColor();
+      updateLineWidth();
     }
     function message() {
-      return {open: open, color: color};
+      return {open: open, color: color, linewidthIndex: linewidthIndex};
     }
     function receive(data) {
       if (data.open !== open) {
@@ -185,6 +209,8 @@
       }
       color = data.color;
       updateColor();
+      linewidthIndex = data.linewidthIndex;
+      updateLineWidth();
     }
     function sendUpdate() {
       sync.update();
