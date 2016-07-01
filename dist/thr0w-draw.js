@@ -81,8 +81,6 @@
     canvasEl.addEventListener('mouseleave', handleMouseEnd);
     canvasEl.addEventListener('touchstart', handleTouchStart);
     canvasEl.addEventListener('touchmove', handleTouchMove);
-    canvasEl.addEventListener('touchend', handleTouchEnd);
-    canvasEl.addEventListener('touchcancel', handleTouchEnd);
     contentEl.appendChild(canvasEl);
     sizeEl.addEventListener('click', nextSize);
     thumbEl.addEventListener('click', toggleOpen);
@@ -100,7 +98,6 @@
       mousePanning = true;
       lastX = (e.pageX - offsetLeft) * scale;
       lastY = (e.pageY - offsetTop) * scale;
-      context.beginPath();
     }
     function handleMouseMove(e) {
       var x;
@@ -116,14 +113,12 @@
     function handleMouseEnd() {
       if (mousePanning) {
         mousePanning = false;
-        context.closePath();
       }
     }
     function handleTouchStart(e) {
       if (e.touches.length === 1) {
         lastX = (e.touches[0].pageX - offsetLeft) * scale;
         lastY = (e.touches[0].pageY - offsetTop) * scale;
-        context.beginPath();
       }
     }
     function handleTouchMove(e) {
@@ -137,11 +132,6 @@
       drawLine(lastX, lastY, x, y);
       lastX = x;
       lastY = y;
-    }
-    function handleTouchEnd(e) {
-      if (e.touches.length === 0) {
-        context.closePath();
-      }
     }
     function nextSize() {
       linewidthIndex = linewidthIndex + 1 < LINEWIDTHS.length ?
@@ -181,6 +171,7 @@
     }
     function updateColor() {
       context.strokeStyle = color;
+      context.fillStyle = color;
     }
     function updateLineWidth() {
       context.lineWidth = LINEWIDTHS[linewidthIndex];
@@ -219,9 +210,16 @@
     function drawLine(startX, startY, finishX, finishY) {
       window.requestAnimationFrame(animation);
       function animation() {
+        context.beginPath();
+        context.arc(startX, startY,
+          LINEWIDTHS[linewidthIndex] / 2, 0, 2 * Math.PI);
+        context.closePath();
+        context.fill();
+        context.beginPath();
         context.moveTo(startX, startY);
         context.lineTo(finishX, finishY);
         context.stroke();
+        context.closePath();
       }
     }
   }
