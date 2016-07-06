@@ -9,6 +9,8 @@
   if (window.thr0w === undefined) {
     throw 400;
   }
+  var PEN_TOOL = 0;
+  var ERASER_TOOL = 1;
   var LINEWIDTHS = [1, 3, 5, 10];
   var service = {};
   service.load = load;
@@ -33,6 +35,7 @@
     if (!grid || typeof grid !== 'object') {
       throw 400;
     }
+    var tool = PEN_TOOL;
     var open = false;
     var color = null;
     var linewidthIndex = null;
@@ -63,11 +66,13 @@
       '<div class="thr0w_draw_palatte__size__dot">',
       '</div>',
       '</div>',
+      '<div class="thr0w_draw_palatte__tool"></div>',
       '<div class="thr0w_draw_palatte__thumb thr0w_draw_palatte__thumb--closed"></div>'].join('\n');
     // jscs:disable
     contentEl.appendChild(palatteEl);
     var sizeEl = palatteEl.querySelector('.thr0w_draw_palatte__size');
     var sizeDotEl = palatteEl.querySelector('.thr0w_draw_palatte__size__dot');
+    var toolEl = palatteEl.querySelector('.thr0w_draw_palatte__tool');
     var thumbEl = palatteEl.querySelector('.thr0w_draw_palatte__thumb');
     var pickerEls = palatteEl.querySelectorAll('.thr0w_draw_palatte__color_picker');
     var i;
@@ -83,11 +88,13 @@
     canvasEl.addEventListener('touchmove', handleTouchMove);
     contentEl.appendChild(canvasEl);
     sizeEl.addEventListener('click', nextSize);
+    toolEl.addEventListener('click', nextTool);
     thumbEl.addEventListener('click', toggleOpen);
     for (i = 0; i < pickerEls.length; i++) {
       pickerEls[i].addEventListener('click', pickColor);
     }
-    reset();
+    resetCanvas();
+    resetPalatte();
     var sync = new window.thr0w.Sync(
       grid,
       'thr0w_draw_' + contentEl.id,
@@ -105,7 +112,15 @@
       if (mousePanning) {
         x = (e.pageX - offsetLeft) * scale;
         y = (e.pageY - offsetTop) * scale;
-        drawLine(lastX, lastY, x, y);
+        switch (tool) {
+          case PEN_TOOL:
+            drawLine(lastX, lastY, x, y);
+            break;
+          case ERASER_TOOL:
+            erase(x, y);
+            break;
+          default:
+        }
         lastX = x;
         lastY = y;
       }
@@ -129,7 +144,15 @@
       if ((x === lastX) && (y === lastY)) {
         return;
       }
-      drawLine(lastX, lastY, x, y);
+      switch (tool) {
+        case PEN_TOOL:
+          drawLine(lastX, lastY, x, y);
+          break;
+        case ERASER_TOOL:
+          erase(x, y);
+          break;
+        default:
+      }
       lastX = x;
       lastY = y;
     }
@@ -141,23 +164,39 @@
       updateLineWidth();
       sendUpdate();
     }
-    function toggleOpen() {
-      open = !open;
-      updateCanvasPalatte();
+    function nextTool() {
+      toolEl.classList.remove('thr0w_draw_palatte__tool--pen');
+      toolEl.classList.remove('thr0w_draw_palatte__tool--eraser');
+      if (tool === PEN_TOOL) {
+        tool = ERASER_TOOL;
+        toolEl.classList.add('thr0w_draw_palatte__tool--eraser');
+      } else {
+        tool = PEN_TOOL;
+        toolEl.classList.add('thr0w_draw_palatte__tool--pen');
+      }
       sendUpdate();
     }
-    function updateCanvasPalatte() {
+    function toggleOpen() {
+      open = !open;
+      updateCanvas();
+      sendUpdate();
       if (open) {
-        canvasEl.classList.remove('thr0w_draw_canvas--closed');
         palatteEl.classList.remove('thr0w_draw_palatte--closed');
         thumbEl.classList.remove('thr0w_draw_palatte__thumb--closed');
         thumbEl.classList.add('thr0w_draw_palatte__thumb--open');
       } else {
-        reset();
-        canvasEl.classList.add('thr0w_draw_canvas--closed');
+        resetPalatte();
         palatteEl.classList.add('thr0w_draw_palatte--closed');
         thumbEl.classList.remove('thr0w_draw_palatte__thumb--open');
         thumbEl.classList.add('thr0w_draw_palatte__thumb--closed');
+      }
+    }
+    function updateCanvas() {
+      if (open) {
+        canvasEl.classList.remove('thr0w_draw_canvas--closed');
+      } else {
+        resetCanvas();
+        canvasEl.classList.add('thr0w_draw_canvas--closed');
       }
     }
     function pickColor() {
@@ -176,31 +215,46 @@
     function updateLineWidth() {
       context.lineWidth = LINEWIDTHS[linewidthIndex];
     }
-    function reset() {
+    function resetCanvas() {
+      color = palatteEl
+        .querySelector('.thr0w_draw_palatte__color_picker--default')
+        .style.backgroundColor;
       linewidthIndex = 0;
-      var defaultPickerEl = palatteEl.querySelector('.thr0w_draw_palatte__color_picker--default');
-      color = defaultPickerEl.style.backgroundColor;
-      canvasEl.width = canvasEl.width;
+      tool = PEN_TOOL;
+      updateColor();
+      updateLineWidth();
+      canvasEl.width = canvasEl.width; // ERASE CANVAS
+    }
+    function resetPalatte() {
       for (i = 0; i < pickerEls.length; i++) {
         pickerEls[i].classList.remove('thr0w_draw_palatte__color_picker--selected');
       }
-      defaultPickerEl.classList.add('thr0w_draw_palatte__color_picker--selected');
+      palatteEl.querySelector('.thr0w_draw_palatte__color_picker--default')
+        .classList.add('thr0w_draw_palatte__color_picker--selected');
+      window.console.log(linewidthIndex);
       sizeDotEl.style.width = (LINEWIDTHS[linewidthIndex] * 3) + 'px';
       sizeDotEl.style.height = (LINEWIDTHS[linewidthIndex] * 3) + 'px';
-      updateColor();
-      updateLineWidth();
+      toolEl.classList.remove('thr0w_draw_palatte__tool--pen');
+      toolEl.classList.remove('thr0w_draw_palatte__tool--eraser');
+      toolEl.classList.add('thr0w_draw_palatte__tool--pen');
     }
     function message() {
-      return {open: open, color: color, linewidthIndex: linewidthIndex};
+      return {
+        open: open,
+        color: color,
+        linewidthIndex: linewidthIndex,
+        tool: tool
+      };
     }
     function receive(data) {
       if (data.open !== open) {
         open = !open;
-        updateCanvasPalatte();
+        updateCanvas();
       }
       color = data.color;
-      updateColor();
       linewidthIndex = data.linewidthIndex;
+      tool = data.tool;
+      updateColor();
       updateLineWidth();
     }
     function sendUpdate() {
@@ -221,6 +275,14 @@
         context.stroke();
         context.closePath();
       }
+    }
+    function erase(centerX, centerY) {
+      context.clearRect(
+        centerX - LINEWIDTHS[linewidthIndex] / 2,
+        centerY - LINEWIDTHS[linewidthIndex] / 2,
+        LINEWIDTHS[linewidthIndex],
+        LINEWIDTHS[linewidthIndex]
+      );
     }
   }
 })();

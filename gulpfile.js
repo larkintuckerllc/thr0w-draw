@@ -11,6 +11,8 @@ gulp.task('default', function() {
     .pipe(gulp.dest('./dist/'));
   gulp.src('./css/*.css')
     .pipe(gulp.dest('./dist/'));
+  gulp.src('./img/*.*')
+    .pipe(gulp.dest('./dist/'));
   gulp.src("./js/*.js")
     .pipe(yuidoc())
     .pipe(gulp.dest("./doc"));

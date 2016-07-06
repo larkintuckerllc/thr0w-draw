@@ -20,7 +20,7 @@
   -webkit-user-select: none;
 }
 .thr0w_draw_palatte--closed {
-  transform: translateY(-330px);
+  transform: translateY(-364px);
 }
 .thr0w_draw_palatte__color_picker {
   box-sizing: border-box;
@@ -52,6 +52,20 @@
   width: 20px;
   height: 20px;
   background-color: black;
+}
+.thr0w_draw_palatte__tool {
+  box-sizing: border-box;
+  margin: 4px;
+  width: 32px;
+  height: 32px;
+  background-color: white;
+  background-size: cover;
+}
+.thr0w_draw_palatte__tool--pen {
+  background-image: url(pen.png);
+}
+.thr0w_draw_palatte__tool--eraser {
+  background-image: url(eraser.png);
 }
 .thr0w_draw_palatte__thumb {
   margin-left: 10px;

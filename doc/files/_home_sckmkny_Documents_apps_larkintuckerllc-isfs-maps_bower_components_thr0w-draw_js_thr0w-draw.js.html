@@ -99,6 +99,8 @@
   if (window.thr0w === undefined) {
     throw 400;
   }
+  var PEN_TOOL = 0;
+  var ERASER_TOOL = 1;
   var LINEWIDTHS = [1, 3, 5, 10];
   var service = {};
   service.load = load;
@@ -123,6 +125,7 @@
     if (!grid || typeof grid !== &#x27;object&#x27;) {
       throw 400;
     }
+    var tool = PEN_TOOL;
     var open = false;
     var color = null;
     var linewidthIndex = null;
@@ -153,11 +156,13 @@
       &#x27;&lt;div class=&quot;thr0w_draw_palatte__size__dot&quot;&gt;&#x27;,
       &#x27;&lt;/div&gt;&#x27;,
       &#x27;&lt;/div&gt;&#x27;,
+      &#x27;&lt;div class=&quot;thr0w_draw_palatte__tool&quot;&gt;&lt;/div&gt;&#x27;,
       &#x27;&lt;div class=&quot;thr0w_draw_palatte__thumb thr0w_draw_palatte__thumb--closed&quot;&gt;&lt;/div&gt;&#x27;].join(&#x27;\n&#x27;);
     // jscs:disable
     contentEl.appendChild(palatteEl);
     var sizeEl = palatteEl.querySelector(&#x27;.thr0w_draw_palatte__size&#x27;);
     var sizeDotEl = palatteEl.querySelector(&#x27;.thr0w_draw_palatte__size__dot&#x27;);
+    var toolEl = palatteEl.querySelector(&#x27;.thr0w_draw_palatte__tool&#x27;);
     var thumbEl = palatteEl.querySelector(&#x27;.thr0w_draw_palatte__thumb&#x27;);
     var pickerEls = palatteEl.querySelectorAll(&#x27;.thr0w_draw_palatte__color_picker&#x27;);
     var i;
@@ -173,11 +178,13 @@
     canvasEl.addEventListener(&#x27;touchmove&#x27;, handleTouchMove);
     contentEl.appendChild(canvasEl);
     sizeEl.addEventListener(&#x27;click&#x27;, nextSize);
+    toolEl.addEventListener(&#x27;click&#x27;, nextTool);
     thumbEl.addEventListener(&#x27;click&#x27;, toggleOpen);
     for (i = 0; i &lt; pickerEls.length; i++) {
       pickerEls[i].addEventListener(&#x27;click&#x27;, pickColor);
     }
-    reset();
+    resetCanvas();
+    resetPalatte();
     var sync = new window.thr0w.Sync(
       grid,
       &#x27;thr0w_draw_&#x27; + contentEl.id,
@@ -195,7 +202,15 @@
       if (mousePanning) {
         x = (e.pageX - offsetLeft) * scale;
         y = (e.pageY - offsetTop) * scale;
-        drawLine(lastX, lastY, x, y);
+        switch (tool) {
+          case PEN_TOOL:
+            drawLine(lastX, lastY, x, y);
+            break;
+          case ERASER_TOOL:
+            erase(x, y);
+            break;
+          default:
+        }
         lastX = x;
         lastY = y;
       }
@@ -219,7 +234,15 @@
       if ((x === lastX) &amp;&amp; (y === lastY)) {
         return;
       }
-      drawLine(lastX, lastY, x, y);
+      switch (tool) {
+        case PEN_TOOL:
+          drawLine(lastX, lastY, x, y);
+          break;
+        case ERASER_TOOL:
+          erase(x, y);
+          break;
+        default:
+      }
       lastX = x;
       lastY = y;
     }
@@ -231,23 +254,39 @@
       updateLineWidth();
       sendUpdate();
     }
-    function toggleOpen() {
-      open = !open;
-      updateCanvasPalatte();
+    function nextTool() {
+      toolEl.classList.remove(&#x27;thr0w_draw_palatte__tool--pen&#x27;);
+      toolEl.classList.remove(&#x27;thr0w_draw_palatte__tool--eraser&#x27;);
+      if (tool === PEN_TOOL) {
+        tool = ERASER_TOOL;
+        toolEl.classList.add(&#x27;thr0w_draw_palatte__tool--eraser&#x27;);
+      } else {
+        tool = PEN_TOOL;
+        toolEl.classList.add(&#x27;thr0w_draw_palatte__tool--pen&#x27;);
+      }
       sendUpdate();
     }
-    function updateCanvasPalatte() {
+    function toggleOpen() {
+      open = !open;
+      updateCanvas();
+      sendUpdate();
       if (open) {
-        canvasEl.classList.remove(&#x27;thr0w_draw_canvas--closed&#x27;);
         palatteEl.classList.remove(&#x27;thr0w_draw_palatte--closed&#x27;);
         thumbEl.classList.remove(&#x27;thr0w_draw_palatte__thumb--closed&#x27;);
         thumbEl.classList.add(&#x27;thr0w_draw_palatte__thumb--open&#x27;);
       } else {
-        reset();
-        canvasEl.classList.add(&#x27;thr0w_draw_canvas--closed&#x27;);
+        resetPalatte();
         palatteEl.classList.add(&#x27;thr0w_draw_palatte--closed&#x27;);
         thumbEl.classList.remove(&#x27;thr0w_draw_palatte__thumb--open&#x27;);
         thumbEl.classList.add(&#x27;thr0w_draw_palatte__thumb--closed&#x27;);
+      }
+    }
+    function updateCanvas() {
+      if (open) {
+        canvasEl.classList.remove(&#x27;thr0w_draw_canvas--closed&#x27;);
+      } else {
+        resetCanvas();
+        canvasEl.classList.add(&#x27;thr0w_draw_canvas--closed&#x27;);
       }
     }
     function pickColor() {
@@ -266,31 +305,46 @@
     function updateLineWidth() {
       context.lineWidth = LINEWIDTHS[linewidthIndex];
     }
-    function reset() {
+    function resetCanvas() {
+      color = palatteEl
+        .querySelector(&#x27;.thr0w_draw_palatte__color_picker--default&#x27;)
+        .style.backgroundColor;
       linewidthIndex = 0;
-      var defaultPickerEl = palatteEl.querySelector(&#x27;.thr0w_draw_palatte__color_picker--default&#x27;);
-      color = defaultPickerEl.style.backgroundColor;
-      canvasEl.width = canvasEl.width;
+      tool = PEN_TOOL;
+      updateColor();
+      updateLineWidth();
+      canvasEl.width = canvasEl.width; // ERASE CANVAS
+    }
+    function resetPalatte() {
       for (i = 0; i &lt; pickerEls.length; i++) {
         pickerEls[i].classList.remove(&#x27;thr0w_draw_palatte__color_picker--selected&#x27;);
       }
-      defaultPickerEl.classList.add(&#x27;thr0w_draw_palatte__color_picker--selected&#x27;);
+      palatteEl.querySelector(&#x27;.thr0w_draw_palatte__color_picker--default&#x27;)
+        .classList.add(&#x27;thr0w_draw_palatte__color_picker--selected&#x27;);
+      window.console.log(linewidthIndex);
       sizeDotEl.style.width = (LINEWIDTHS[linewidthIndex] * 3) + &#x27;px&#x27;;
       sizeDotEl.style.height = (LINEWIDTHS[linewidthIndex] * 3) + &#x27;px&#x27;;
-      updateColor();
-      updateLineWidth();
+      toolEl.classList.remove(&#x27;thr0w_draw_palatte__tool--pen&#x27;);
+      toolEl.classList.remove(&#x27;thr0w_draw_palatte__tool--eraser&#x27;);
+      toolEl.classList.add(&#x27;thr0w_draw_palatte__tool--pen&#x27;);
     }
     function message() {
-      return {open: open, color: color, linewidthIndex: linewidthIndex};
+      return {
+        open: open,
+        color: color,
+        linewidthIndex: linewidthIndex,
+        tool: tool
+      };
     }
     function receive(data) {
       if (data.open !== open) {
         open = !open;
-        updateCanvasPalatte();
+        updateCanvas();
       }
       color = data.color;
-      updateColor();
       linewidthIndex = data.linewidthIndex;
+      tool = data.tool;
+      updateColor();
       updateLineWidth();
     }
     function sendUpdate() {
@@ -311,6 +365,14 @@
         context.stroke();
         context.closePath();
       }
+    }
+    function erase(centerX, centerY) {
+      context.clearRect(
+        centerX - LINEWIDTHS[linewidthIndex] / 2,
+        centerY - LINEWIDTHS[linewidthIndex] / 2,
+        LINEWIDTHS[linewidthIndex],
+        LINEWIDTHS[linewidthIndex]
+      );
     }
   }
 })();
