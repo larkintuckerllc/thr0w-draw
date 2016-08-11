@@ -11,7 +11,7 @@
   }
   var PEN_TOOL = 0;
   var ERASER_TOOL = 1;
-  var LINEWIDTHS = [1, 3, 5, 10];
+  var LINEWIDTHS = [1, 3, 5, 10, 15];
   var service = {};
   service.load = load;
   // jscs:disable
@@ -231,7 +231,6 @@
       }
       palatteEl.querySelector('.thr0w_draw_palatte__color_picker--default')
         .classList.add('thr0w_draw_palatte__color_picker--selected');
-      window.console.log(linewidthIndex);
       sizeDotEl.style.width = (LINEWIDTHS[linewidthIndex] * 3) + 'px';
       sizeDotEl.style.height = (LINEWIDTHS[linewidthIndex] * 3) + 'px';
       toolEl.classList.remove('thr0w_draw_palatte__tool--pen');

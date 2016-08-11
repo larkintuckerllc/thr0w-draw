@@ -20,14 +20,14 @@
   -webkit-user-select: none;
 }
 .thr0w_draw_palatte--closed {
-  transform: translateY(-364px);
+  transform: translateY(-684px);
 }
 .thr0w_draw_palatte__color_picker {
   box-sizing: border-box;
   margin: 4px;
-  width: 32px;
-  height: 32px;
-  border-width: 5px;
+  width: 64px;
+  height: 64px;
+  border-width: 10px;
   border-radius: 50%;
   border-color: #888888;
 }
@@ -38,8 +38,8 @@
   position: relative;
   box-sizing: border-box;
   margin: 4px;
-  width: 32px;
-  height: 32px;
+  width: 64px;
+  height: 64px;
   background-color: white;
 }
 .thr0w_draw_palatte__size__dot {
@@ -56,8 +56,8 @@
 .thr0w_draw_palatte__tool {
   box-sizing: border-box;
   margin: 4px;
-  width: 32px;
-  height: 32px;
+  width: 64px;
+  height: 64px;
   background-color: white;
   background-size: cover;
 }
@@ -68,20 +68,19 @@
   background-image: url(eraser.png);
 }
 .thr0w_draw_palatte__thumb {
-  margin-left: 10px;
-  margin-right: 4px;
+  margin-left: 16px;
   margin-top: 12px;
   margin-bottom: 9px;
   width: 0px;
   height: 0px;
 }
 .thr0w_draw_palatte__thumb--closed {
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-top: 16px solid #888888;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-top: 32px solid #888888;
 }
 .thr0w_draw_palatte__thumb--open {
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-bottom: 16px solid #888888;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-bottom: 32px solid #888888;
 }
